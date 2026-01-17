@@ -1,18 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Адмінка: Контроль Фронту</title>
+    <meta charset="UTF-8">
+    <title>Map Editor HQ</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <style>
+        body, html { margin: 0; padding: 0; height: 100%; background: #1a1a1a; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; }
-        .admin-panel { position: absolute; top: 10px; left: 50px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .admin-sidebar { 
+            position: absolute; top: 10px; left: 10px; z-index: 1000; 
+            background: rgba(0,0,0,0.8); color: white; padding: 15px; 
+            width: 250px; border-radius: 8px; border: 1px solid #e74c3c;
+        }
+        button { 
+            background: #e74c3c; color: white; border: none; padding: 10px; 
+            width: 100%; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 10px;
+        }
+        input { width: 100%; background: #222; color: white; border: 1px solid #444; padding: 5px; margin-top: 5px; }
     </style>
 </head>
 <body>
-    <div class="admin-panel">
-        <button onclick="copyToClipboard()"><b>СКОПІЮВАТИ ДАНІ ДЛЯ САЙТУ</b></button>
-        <div id="status">Намалюй щось і натисни кнопку</div>
+    <div class="admin-sidebar">
+        <h3 style="margin:0">EDITOR HQ</h3>
+        <label style="font-size:11px">Object Name:</label>
+        <input type="text" id="obj-name" placeholder="E.g. Frontline">
+        <button onclick="copyData()">COPY DATA FOR SITE</button>
+        <div id="status" style="font-size:10px; margin-top:5px; color:#aaa">1. Draw 2. Click Copy</div>
     </div>
     <div id="map"></div>
 
@@ -20,7 +34,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script>
         var map = L.map('map').setView([48.37, 31.16], 6);
-        L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map); // Гібрид Google
+        
+        // SAT + HYBRID (Names & Borders)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}').addTo(map);
 
         var drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
@@ -33,13 +50,18 @@
 
         map.on(L.Draw.Event.CREATED, function (e) {
             var layer = e.layer;
+            var name = document.getElementById('obj-name').value || "Object";
+            layer.feature = layer.feature || {type: "Feature", properties: {}};
+            layer.feature.properties.name = name;
+            layer.bindPopup(name);
             drawnItems.addLayer(layer);
         });
 
-        function copyToClipboard() {
+        function copyData() {
             var data = JSON.stringify(drawnItems.toGeoJSON());
             navigator.clipboard.writeText(data);
-            document.getElementById('status').innerText = "✅ СКОПІЙОВАНО! Тепер встав у data.json";
+            document.getElementById('status').innerText = "✅ COPIED! Paste to data.json";
+            document.getElementById('status').style.color = "#27ae60";
         }
     </script>
 </body>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Адмінка: Контроль Фронту</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <style>
+        #map { height: 100vh; width: 100%; }
+        .admin-panel { position: absolute; top: 10px; left: 50px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <div class="admin-panel">
+        <button onclick="copyToClipboard()"><b>СКОПІЮВАТИ ДАНІ ДЛЯ САЙТУ</b></button>
+        <div id="status">Намалюй щось і натисни кнопку</div>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script>
+        var map = L.map('map').setView([48.37, 31.16], 6);
+        L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map); // Гібрид Google
+
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            edit: { featureGroup: drawnItems },
+            draw: { polygon: true, polyline: true, marker: true, circle: false, rectangle: false }
+        });
+        map.addControl(drawControl);
+
+        map.on(L.Draw.Event.CREATED, function (e) {
+            var layer = e.layer;
+            drawnItems.addLayer(layer);
+        });
+
+        function copyToClipboard() {
+            var data = JSON.stringify(drawnItems.toGeoJSON());
+            navigator.clipboard.writeText(data);
+            document.getElementById('status').innerText = "✅ СКОПІЙОВАНО! Тепер встав у data.json";
+        }
+    </script>
+</body>
+</html>
